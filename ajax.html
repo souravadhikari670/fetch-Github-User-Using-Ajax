@@ -1,0 +1,91 @@
+<html>
+
+<body>
+  <button type="button" onclick="loadDoc()">Get Data from Github</button>
+
+  <div id="users"></div>
+  <div id="repository"></div>
+  <!-- <button onclick="loadDoc()">Next</button> -->
+
+  <script>
+    var xhttp = new XMLHttpRequest(); // Initialize the HTTP request.
+
+    // Track the state changes of the request.
+    xhttp.onreadystatechange = function () {
+      // readyState 4 means the request is done.
+      // status 200 is a successful return.
+      if (xhttp.readyState == 4 && xhttp.status == 200) {
+        //document.getElementById("users").innerHTML = xhttp.responseText; // 'This is the output.'
+        let users = JSON.parse(xhttp.responseText);
+        if (Array.isArray(users) && users.length) {
+
+          //store in localstorage
+          users.forEach(function (user) {
+
+            localStorage.githubUsers = JSON.stringify(users)
+
+            //print in dom
+            let list = document.createElement('li')
+            let divProfilePic = document.createElement('div')
+            divProfilePic.style.width = '50px'
+            divProfilePic.style.height = '50px'
+            divProfilePic.style.border = '1px solid red'
+            divProfilePic.style.margin = '10px'
+            divProfilePic.style.backgroundImage = 'url(' + user.avatar_url + ')'
+            divProfilePic.style.backgroundSize = '100%'
+
+            let node = document.createElement("p"); // Create a <p> node
+            let textNode = document.createTextNode("Id : " + user.id + " Name : " + user.login +
+              " Profile Link : " + user.html_url); // Create a text node
+
+            let buttonRepository = document.createElement('button')
+            buttonRepository.innerHTML = "Get Repositories"
+            buttonRepository.setAttribute('id', user.id)
+
+            let repositoriesArea = document.createElement('p')
+            repositoriesArea.setAttribute('id', 'repoArea')
+
+            node.appendChild(textNode); // Append the text to <p>
+            list.appendChild(divProfilePic);
+            list.appendChild(node)
+            list.appendChild(buttonRepository)
+            document.getElementById("users").appendChild(list); // Append <p> to <div> with id="users"
+            document.getElementById("users").appendChild(repositoriesArea)
+
+            buttonRepository.addEventListener('click', function (event) {
+              loadRepository(user.login)
+            })
+          });
+          let repos = JSON.parse(xhttp.responseText);
+          if (Array.isArray(repos) && repos.length) {
+            repos.forEach(function (repo) {
+              let node = document.createElement("div");
+
+              let textNode = document.createTextNode("Id : " + repo.id + " Name : " + repo.name +
+                " Project Link : " + repo.html_url); // Create a text node
+              node.appendChild(textNode); // Append the text to <p>
+              document.getElementById("repository").appendChild(node); // Append <p> to <div> with id="users"
+            });
+          }
+        }
+      } else {
+        // An error occurred during the request.
+        console.log(xhttp.status);
+      }
+    };
+    count = 0
+
+    function loadDoc() {
+      xhttp.open("GET", "https://api.github.com/users");
+      xhttp.send();
+    }
+
+    function loadRepository(username) {
+      xhttp.open("GET", "https://api.github.com/users/" + username + "/repos");
+      xhttp.send();
+    }
+  </script>
+
+</body>
+
+</html>
